@@ -1,0 +1,9 @@
+{
+  "main": {
+    "external_config": true,  
+    "settings_tooltips": true
+  }, 
+  "settings": {
+    "enable_autosave": true
+  }
+}
