@@ -1,0 +1,26 @@
+[
+  {
+    "_comment0": "/id/ field must not be changed.",
+    "id": "preservation",
+    "enabled": true,
+    "name": "lockeddrop:ench.preservation",
+    "rarity": "RARE",
+    "min_ench_level": 15,
+    "max_ench_level": 25,
+    "valid_for": "ALL",
+    "valid_equipment_slots": [
+      "MAINHAND",
+      "OFFHAND",
+      "FEET",
+      "LEGS",
+      "CHEST",
+      "HEAD"
+    ],
+    "incompatible_with": [
+      "minecraft:vanishing_curse"
+    ],
+    "invalid_items": [
+      "minecraft:wooden_sword"
+    ]
+  }
+]

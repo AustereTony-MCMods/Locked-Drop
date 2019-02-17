@@ -1,3 +1,5 @@
+lockeddrop:ench.preservation=Сохранение
+
 ld.command.help.title=Available commands:
 ld.command.help.disable=отключить настройки.
 ld.command.help.enable=включить настройки.

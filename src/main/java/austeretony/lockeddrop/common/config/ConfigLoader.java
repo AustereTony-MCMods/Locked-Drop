@@ -15,25 +15,139 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import austeretony.lockeddrop.common.enchantments.EnumEnchantmentProperties;
 import austeretony.lockeddrop.common.main.DataManager;
 import austeretony.lockeddrop.common.main.LockedDropMain;
 import austeretony.lockeddrop.common.main.LockedItem;
 import austeretony.lockeddrop.common.main.MetaItem;
 import austeretony.lockeddrop.common.reference.CommonReference;
 import austeretony.lockeddrop.common.util.LDUtils;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnumEnchantmentType;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.util.ResourceLocation;
 
 public class ConfigLoader {
 
     private static final String 
     EXT_CONFIGURATION_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/config.json",
-    EXT_DATA_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/locked_items.json";
+    EXT_DATA_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/locked_items.json",
+    EXT_ENCH_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/enchantments.json";
 
     private static final DateFormat BACKUP_DATE_FORMAT = new SimpleDateFormat("yy_MM_dd-HH-mm-ss");
+
+    public static void loadEnchantmentProperties() {
+        JsonObject internalConfig;
+        try {       
+            internalConfig = (JsonObject) LDUtils.getInternalJsonData("assets/lockeddrop/config.json");  
+        } catch (IOException exception) {       
+            LockedDropMain.LOGGER.error("Internal configuration files damaged!");
+            exception.printStackTrace();
+            return;
+        }
+        if (EnumConfigSettings.EXTERNAL_CONFIG.initBoolean(internalConfig)) {
+            Path configPath = Paths.get(EXT_CONFIGURATION_FILE);      
+            if (Files.exists(configPath)) {
+                JsonObject externalConfig;
+                try {       
+                    externalConfig = updateConfig(internalConfig); 
+                } catch (IOException exception) {       
+                    LockedDropMain.LOGGER.error("External configuration files damaged!");
+                    exception.printStackTrace();
+                    return;
+                }
+                if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(externalConfig))
+                    loadExternalEnchantments();
+            }
+        } else {
+            if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(internalConfig))
+                loadInternalEnchantments();
+        }
+    }
+
+    private static void loadInternalEnchantments() {
+        JsonArray config;
+        try {       
+            config = (JsonArray) LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json");  
+        } catch (IOException exception) {     
+            LockedDropMain.LOGGER.error("Internal enchantments configuration file damaged!");
+            exception.printStackTrace();
+            return;
+        }
+        loadEnchantments(config);
+    }
+
+    private static void loadExternalEnchantments() {
+        Path configPath = Paths.get(EXT_ENCH_FILE);      
+        if (Files.exists(configPath)) {
+            JsonArray config;
+            try {                   
+                config = (JsonArray) LDUtils.getExternalJsonData(EXT_ENCH_FILE);   
+            } catch (IOException exception) {  
+                LockedDropMain.LOGGER.error("External enchantments configuration file damaged!");
+                exception.printStackTrace();
+                return;
+            }       
+            loadEnchantments(config);
+        } else {                
+            try {               
+                Files.createDirectories(configPath.getParent());
+                JsonArray config = (JsonArray) LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json");
+                LDUtils.createExternalJsonFile(EXT_ENCH_FILE, config);    
+                loadEnchantments(config);
+            } catch (IOException exception) {               
+                exception.printStackTrace();
+            }                       
+        }
+    }
+
+    private static void loadEnchantments(JsonArray config) { 
+        JsonObject enchObject;
+        EnumEnchantmentProperties enumProp;
+        Enchantment.Rarity rarity;
+        EnumEnchantmentType type;
+        EntityEquipmentSlot[] equipmentSlots;
+        for (JsonElement enchElement : config) {
+            enchObject = enchElement.getAsJsonObject();
+            enumProp = EnumEnchantmentProperties.getOf(enchObject.get("id").getAsString());
+            enumProp.setEnabled(enchObject.get("enabled").getAsBoolean());
+            enumProp.setName(enchObject.get("name").getAsString());
+            rarity = Enchantment.Rarity.valueOf(enchObject.get("rarity").getAsString());
+            enumProp.setRarity(rarity == null ? Enchantment.Rarity.COMMON : rarity);
+            enumProp.setMinEnchantability(enchObject.get("min_ench_level").getAsInt());
+            enumProp.setMaxEnchantability(enchObject.get("max_ench_level").getAsInt());
+            type = EnumEnchantmentType.valueOf(enchObject.get("valid_for").getAsString());
+            enumProp.setType(type == null ? EnumEnchantmentType.ALL : type);
+            enumProp.setEquipmentSlots(getSlots(enchObject.get("valid_equipment_slots").getAsJsonArray()));  
+            for (JsonElement incompatElement : enchObject.get("incompatible_with").getAsJsonArray())
+                enumProp.addIncompatibleEnchantment(new ResourceLocation(incompatElement.getAsString()));
+            for (JsonElement incompatElement : enchObject.get("invalid_items").getAsJsonArray())
+                enumProp.addIvalidItem(new ResourceLocation(incompatElement.getAsString()));
+        }
+    }
+
+    private static EntityEquipmentSlot[] getSlots(JsonArray jsonArray) {
+        EntityEquipmentSlot[] slots = new EntityEquipmentSlot[jsonArray.size()];
+        String slotName;
+        int i = 0;
+        EntityEquipmentSlot slot;
+        for (JsonElement slotElement : jsonArray) {
+            slotName = slotElement.getAsString();
+            slot = EntityEquipmentSlot.valueOf(slotName);
+            if (slot == null)
+                slot = EntityEquipmentSlot.MAINHAND;
+            slots[i] = slot;
+            i++;
+        }
+        if (slots.length == 0)
+            slots = new EntityEquipmentSlot[] {EntityEquipmentSlot.MAINHAND};     
+        return slots;
+    }
 
     public static void load() {
         LockedDropMain.LOGGER.error("Loading data...");
@@ -46,7 +160,7 @@ public class ConfigLoader {
             exception.printStackTrace();
             return;
         }
-        if (EnumConfigSettings.EXTERNAL_CONFIG.initBoolean(internalConfig)) {               
+        if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled()) {               
             loadExternalConfig(internalConfig, internalSettings);
         } else                  
             loadData(internalConfig, internalSettings);
@@ -88,7 +202,7 @@ public class ConfigLoader {
         }
         JsonElement versionElement = externalConfigOld.get("version");
         if (versionElement == null || isOutdated(versionElement.getAsString(), LockedDropMain.VERSION)) {
-            LockedDropMain.LOGGER.error("Updating external config file...");
+            LockedDropMain.LOGGER.info("Updating external config file...");
             externalConfigNew = new JsonObject();
             externalConfigNew.add("version", new JsonPrimitive(LockedDropMain.VERSION));
             Map<String, JsonElement> 
@@ -123,7 +237,7 @@ public class ConfigLoader {
             }
             return externalConfigNew;
         }
-        LockedDropMain.LOGGER.error("External config up-to-date!");
+        LockedDropMain.LOGGER.info("External config up-to-date!");
         return externalConfigOld;
     }
 

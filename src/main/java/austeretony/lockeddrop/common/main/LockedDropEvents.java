@@ -41,9 +41,9 @@ public class LockedDropEvents {
             int itemMeta = event.getItemStack().getMetadata();
             if (DataManager.existClient(itemRegistryName) 
                     && (DataManager.getClient(itemRegistryName).hasMetaItem(itemMeta) || DataManager.getClient(itemRegistryName).hasMainMeta()))
-                this.addGlobalTooltip(itemRegistryName, itemMeta, event.getToolTip());
+                addGlobalTooltip(itemRegistryName, itemMeta, event.getToolTip());
             if (event.getItemStack().hasTagCompound())
-                this.addNBTTooltip(event.getItemStack(), itemRegistryName, itemMeta, event.getToolTip());
+                addNBTTooltip(event.getItemStack(), itemRegistryName, itemMeta, event.getToolTip());
         }
     }
 

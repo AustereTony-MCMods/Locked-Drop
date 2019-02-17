@@ -18,7 +18,10 @@ public class LockedDropClassTransformer implements IClassTransformer {
         case "net.minecraft.entity.player.EntityPlayerMP":                    
             return patch(basicClass, EnumInputClasses.MC_ENTITY_PLAYER_MP); 
         case "net.minecraft.entity.player.InventoryPlayer":                    
-            return patch(basicClass, EnumInputClasses.MC_INVENTORY_PLAYER);                                                
+            return patch(basicClass, EnumInputClasses.MC_INVENTORY_PLAYER);       
+
+        case "baubles.common.event.EventHandlerEntity":                    
+            return patch(basicClass, EnumInputClasses.BAUBLES_EVENT_HANDLER_ENTITY);       
         }       
         return basicClass;
     }

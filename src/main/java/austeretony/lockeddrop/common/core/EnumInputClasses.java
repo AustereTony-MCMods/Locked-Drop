@@ -15,7 +15,10 @@ import org.objectweb.asm.tree.VarInsnNode;
 public enum EnumInputClasses {
 
     MC_ENTITY_PLAYER_MP("Minecraft", "EntityPlayerMP", 0, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES),
-    MC_INVENTORY_PLAYER("Minecraft", "InventoryPlayer", 0, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+    MC_INVENTORY_PLAYER("Minecraft", "InventoryPlayer", 0, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES),
+
+    BAUBLES_EVENT_HANDLER_ENTITY("Baubles", "EventHandlerEntity", 0, 0);
+
 
     private static final String HOOKS_CLASS = "austeretony/lockeddrop/common/core/LockedDropHooks";
 
@@ -36,6 +39,9 @@ public enum EnumInputClasses {
             return patchMCEntityPlayerMP(classNode);
         case MC_INVENTORY_PLAYER:
             return patchMCInventoryPlayer(classNode);
+
+        case BAUBLES_EVENT_HANDLER_ENTITY:
+            return patchBaublesEventHandlerEntity(classNode);
         }
         return false;
     }
@@ -86,6 +92,38 @@ public enum EnumInputClasses {
                         nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "canItemStackBeDropped", "(L" + itemStackClassName + ";)Z", false));
                         nodesList.add(new JumpInsnNode(Opcodes.IFEQ, ((JumpInsnNode) currentInsn).label));
                         methodNode.instructions.insertBefore(currentInsn.getPrevious().getPrevious(), nodesList); 
+                        isSuccessful = true;                        
+                        break;
+                    }
+                }    
+                break;
+            }
+        }
+        return isSuccessful;
+    }
+
+    private boolean patchBaublesEventHandlerEntity(ClassNode classNode) {
+        String
+        dropItemsAtMethodName = "dropItemsAt",
+        getStackInSlotMethodName = "getStackInSlot",
+        itemStackClassName = "net/minecraft/item/ItemStack",
+        iBaubleItemHandlerClassName = "baubles/api/cap/IBaublesItemHandler";
+        boolean isSuccessful = false;   
+        AbstractInsnNode currentInsn;
+
+        for (MethodNode methodNode : classNode.methods) {               
+            if (methodNode.name.equals(dropItemsAtMethodName)) {                         
+                Iterator<AbstractInsnNode> insnIterator = methodNode.instructions.iterator();              
+                while (insnIterator.hasNext()) {                        
+                    currentInsn = insnIterator.next();                  
+                    if (currentInsn.getOpcode() == Opcodes.IFNULL) {                             
+                        InsnList nodesList = new InsnList();   
+                        nodesList.add(new VarInsnNode(Opcodes.ALOAD, 4));
+                        nodesList.add(new VarInsnNode(Opcodes.ILOAD, 5));
+                        nodesList.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, iBaubleItemHandlerClassName, getStackInSlotMethodName, "(I)L" + itemStackClassName + ";", true));
+                        nodesList.add(new MethodInsnNode(Opcodes.INVOKESTATIC, HOOKS_CLASS, "canItemStackBeDropped", "(L" + itemStackClassName + ";)Z", false));
+                        nodesList.add(new JumpInsnNode(Opcodes.IFEQ, ((JumpInsnNode) currentInsn).label));
+                        methodNode.instructions.insertBefore(currentInsn.getPrevious().getPrevious().getPrevious(), nodesList); 
                         isSuccessful = true;                        
                         break;
                     }

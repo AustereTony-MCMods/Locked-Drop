@@ -7,6 +7,7 @@ public enum EnumConfigSettings {
 
     EXTERNAL_CONFIG("main", "external_config"),
     SETTINGS_TOOLTIPS("main", "settings_tooltips"),
+    ENABLE_ENCHANTMENTS("main", "enable_enchantments"),
     AUTOSAVE("settings", "enable_autosave");
 
     public final String configSection, configKey;
