@@ -1,3 +1,9 @@
+1.1.0
++Added support for Baubles slots. Items shouldn't drop now.
++Added enchantment "Preservation", which will prevent items drop.
+Every enchantment parameter configurable via special config file. Parameters: name, rarity, 
+min ench level, max ench level, valid equipment, valid equipment slots, incompatible enchantments, 
+invalid items;
 1.0.0
 +Initial release.
 
