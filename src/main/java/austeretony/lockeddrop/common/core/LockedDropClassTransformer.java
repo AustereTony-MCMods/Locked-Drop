@@ -15,6 +15,8 @@ public class LockedDropClassTransformer implements IClassTransformer {
     @Override
     public byte[] transform(String name, String transformedName, byte[] basicClass) {   
         switch (transformedName) {
+        case "net.minecraft.client.resources.Locale":                    
+            return patch(basicClass, EnumInputClasses.MC_LOCALE);
         case "net.minecraft.entity.player.EntityPlayerMP":                    
             return patch(basicClass, EnumInputClasses.MC_ENTITY_PLAYER_MP); 
         case "net.minecraft.entity.player.InventoryPlayer":                    

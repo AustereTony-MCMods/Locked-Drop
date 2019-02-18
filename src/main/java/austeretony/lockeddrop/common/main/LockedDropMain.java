@@ -24,7 +24,7 @@ public class LockedDropMain {
     public static final String 
     MODID = "lockeddrop",
     NAME = "Locked Drop",
-    VERSION = "1.1.0",
+    VERSION = "1.2.0",
     VERSIONS_FORGE_URL = "https://raw.githubusercontent.com/AustereTony-MCMods/Locked-Drop/info/mod_versions_forge.json";
 
     public static final Logger LOGGER = LogManager.getLogger(NAME);

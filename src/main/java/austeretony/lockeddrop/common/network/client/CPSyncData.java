@@ -47,11 +47,6 @@ public class CPSyncData extends ProxyPacket {
                 buffer.writeByte(metaItem.meta);
                 buffer.writeBoolean(metaItem.canBeDroppedOnDeath());
             }
-        } else if (this.action == EnumAction.REMOVE_LATEST.ordinal()) {
-            String regNameStr = DataManager.latestItem.registryName.toString();
-            buffer.writeByte(regNameStr.length());
-            buffer.writeString(regNameStr);
-            buffer.writeByte(DataManager.latestItem.meta);
         }
     }
 
@@ -102,12 +97,6 @@ public class CPSyncData extends ProxyPacket {
                 metaItem.setCanBeDroppedOnDeath(buffer.readBoolean());
             }
             DataManager.getClient(registryName).setMainMeta(mainMeta);
-        } else if (this.action == EnumAction.REMOVE_LATEST.ordinal()) {
-            String regNameStr = buffer.readString(buffer.readByte());
-            String[] regNameStrSplitted = regNameStr.split("[:]");
-            ResourceLocation registryName = new ResourceLocation(regNameStrSplitted[0], regNameStrSplitted[1]);
-            if (DataManager.existClient(registryName))
-                DataManager.getClient(registryName).removeMetaItem(buffer.readByte());
         }
     }
 
@@ -121,7 +110,6 @@ public class CPSyncData extends ProxyPacket {
 
         SYNC_ALL,
         SYNC_LATEST,
-        REMOVE_ALL,
-        REMOVE_LATEST;
+        REMOVE_ALL;
     }
 }

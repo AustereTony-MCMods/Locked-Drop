@@ -1,0 +1,22 @@
+{
+  "en_us": [
+    {
+      "key": "ld.tooltip.global.keepsOnDeath",
+      "value": "Does not drop out at death"
+    },
+    {
+      "key": "ld.tooltip.nbt.keepsOnDeath",
+      "value": "Does not drop out at death"
+    }
+  ],
+  "ru_ru": [
+    {
+      "key": "ld.tooltip.global.keepsOnDeath",
+      "value": "Не выпадает в случае смерти"
+    },
+    {
+      "key": "ld.tooltip.nbt.keepsOnDeath",
+      "value": "Не выпадает в случае смерти"
+    }
+  ]
+}

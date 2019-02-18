@@ -53,7 +53,7 @@ public class LockedDropEvents {
             String formatting = TextFormatting.AQUA.toString() + TextFormatting.ITALIC.toString();
             if (!DataManager.isSettingsEnabledClient())
                 formatting += TextFormatting.STRIKETHROUGH.toString();                
-            tooltip.add(formatting + I18n.format("ld.tooltip.keepsOnDeath"));
+            tooltip.add(formatting + I18n.format("ld.tooltip.global.keepsOnDeath"));
         }
     }
 
@@ -64,7 +64,7 @@ public class LockedDropEvents {
             String formatting = TextFormatting.GREEN.toString() + TextFormatting.ITALIC.toString();
             if (!DataManager.isSettingsEnabledClient())
                 formatting += TextFormatting.STRIKETHROUGH.toString();                
-            tooltip.add(formatting + I18n.format("ld.tooltip.keepsOnDeath"));
+            tooltip.add(formatting + I18n.format("ld.tooltip.nbt.keepsOnDeath"));
         }
     }
 }

@@ -1,11 +1,19 @@
 package austeretony.lockeddrop.common.core;
 
+import java.util.List;
+import java.util.Map;
+
+import austeretony.lockeddrop.common.config.ConfigLoader;
 import austeretony.lockeddrop.common.enchantments.EnchantmentsHelper;
 import austeretony.lockeddrop.common.main.DataManager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 
 public class LockedDropHooks {
+    
+    public static void loadCustomLocalization(List<String> languageList, Map<String, String> properties) {
+        ConfigLoader.loadCustomLocalization(languageList, properties);
+    }
 
     public static boolean canItemStackBeDropped(ItemStack itemStack) {
         if (DataManager.isSettingsEnabled()) {

@@ -40,4 +40,5 @@ ld.command.err.noDataLatest=Current item absent in list.
 ld.command.err.noNBTTag=This item has no NBT tag.
 ld.command.err.noData=Item list empty.
 
-ld.tooltip.keepsOnDeath=Doesn't drop out at death
+ld.tooltip.global.keepsOnDeath=Doesn't drop out at death
+ld.tooltip.nbt.keepsOnDeath=Doesn't drop out at death

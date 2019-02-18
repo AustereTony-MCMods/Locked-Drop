@@ -40,4 +40,5 @@ ld.command.err.noDataLatest=Предмета нет в списке.
 ld.command.err.noNBTTag=Предмет не содержит NBT маркера.
 ld.command.err.noData=Список предметов пуст.
 
-ld.tooltip.keepsOnDeath=Не выпадает в случае смерти
+ld.tooltip.global.keepsOnDeath=Не выпадает в случае смерти
+ld.tooltip.nbt.keepsOnDeath=Не выпадает в случае смерти

@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -37,69 +38,104 @@ public class ConfigLoader {
     private static final String 
     EXT_CONFIGURATION_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/config.json",
     EXT_DATA_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/locked_items.json",
-    EXT_ENCH_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/enchantments.json";
+    EXT_ENCH_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/enchantments.json",
+    EXT_LOCALIZATION_FILE = CommonReference.getGameFolder() + "/config/lockeddrop/localization.json";
 
     private static final DateFormat BACKUP_DATE_FORMAT = new SimpleDateFormat("yy_MM_dd-HH-mm-ss");
 
+    public static void loadCustomLocalization(List<String> languageList, Map<String, String> properties) {
+        Path localizationPath = Paths.get(EXT_LOCALIZATION_FILE);      
+        if (Files.exists(localizationPath)) {
+            try {       
+                loadLocalization(LDUtils.getExternalJsonData(EXT_LOCALIZATION_FILE).getAsJsonObject(), languageList, properties);
+            } catch (IOException exception) {       
+                exception.printStackTrace();
+                return;
+            }
+        } else {
+            try {               
+                Files.createDirectories(localizationPath.getParent());
+                JsonObject localizationFile = LDUtils.getInternalJsonData("assets/lockeddrop/localization.json").getAsJsonObject();
+                LDUtils.createExternalJsonFile(EXT_LOCALIZATION_FILE, localizationFile);  
+                loadLocalization(localizationFile, languageList, properties);
+            } catch (IOException exception) {               
+                exception.printStackTrace();
+            }   
+        }
+    }
+
+    private static void loadLocalization(JsonObject localizationFile, List<String> languageList, Map<String, String> properties) {
+        LockedDropMain.LOGGER.info("Searching for custom localization...");
+        for (String lang : languageList) {
+            JsonElement entriesElement = localizationFile.get(lang.toLowerCase());
+            if (entriesElement != null) {
+                LockedDropMain.LOGGER.info("Loading custom <" + lang + "> localization...");
+                JsonArray entries = entriesElement.getAsJsonArray();
+                JsonObject entryObject;
+                for (JsonElement entryElement : entries) {
+                    entryObject = entryElement.getAsJsonObject();
+                    if (entryObject.has("key") && entryObject.has("value")) 
+                        properties.put(
+                                entryObject.get("key").getAsString(), 
+                                entryObject.get("value").getAsString());
+                }
+            } else {
+                LockedDropMain.LOGGER.error("Custom localization for <" + lang + "> undefined!");
+            }
+        }
+    }
+
     public static void loadEnchantmentProperties() {
-        JsonObject internalConfig;
         try {       
-            internalConfig = (JsonObject) LDUtils.getInternalJsonData("assets/lockeddrop/config.json");  
+            JsonObject internalConfig = LDUtils.getInternalJsonData("assets/lockeddrop/config.json").getAsJsonObject();  
+            if (EnumConfigSettings.EXTERNAL_CONFIG.initBoolean(internalConfig)) {
+                Path extConfigPath = Paths.get(EXT_CONFIGURATION_FILE);      
+                if (Files.exists(extConfigPath)) {
+                    try {       
+                        if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(updateConfig(internalConfig)))
+                            loadExternalEnchantments();
+                    } catch (IOException exception) {       
+                        LockedDropMain.LOGGER.error("External configuration files damaged!");
+                        exception.printStackTrace();
+                    }
+                } else {
+                    if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(internalConfig))
+                        loadExternalEnchantments();
+                }
+            } else {
+                if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(internalConfig))
+                    loadInternalEnchantments();
+            }
         } catch (IOException exception) {       
             LockedDropMain.LOGGER.error("Internal configuration files damaged!");
             exception.printStackTrace();
-            return;
-        }
-        if (EnumConfigSettings.EXTERNAL_CONFIG.initBoolean(internalConfig)) {
-            Path configPath = Paths.get(EXT_CONFIGURATION_FILE);      
-            if (Files.exists(configPath)) {
-                JsonObject externalConfig;
-                try {       
-                    externalConfig = updateConfig(internalConfig); 
-                } catch (IOException exception) {       
-                    LockedDropMain.LOGGER.error("External configuration files damaged!");
-                    exception.printStackTrace();
-                    return;
-                }
-                if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(externalConfig))
-                    loadExternalEnchantments();
-            }
-        } else {
-            if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(internalConfig))
-                loadInternalEnchantments();
         }
     }
 
     private static void loadInternalEnchantments() {
-        JsonArray config;
         try {       
-            config = (JsonArray) LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json");  
+            loadEnchantments(LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json").getAsJsonArray());
         } catch (IOException exception) {     
             LockedDropMain.LOGGER.error("Internal enchantments configuration file damaged!");
             exception.printStackTrace();
-            return;
         }
-        loadEnchantments(config);
     }
 
     private static void loadExternalEnchantments() {
-        Path configPath = Paths.get(EXT_ENCH_FILE);      
-        if (Files.exists(configPath)) {
-            JsonArray config;
+        Path extEnchantmentsPath = Paths.get(EXT_ENCH_FILE);      
+        if (Files.exists(extEnchantmentsPath)) {
             try {                   
-                config = (JsonArray) LDUtils.getExternalJsonData(EXT_ENCH_FILE);   
+                loadEnchantments(LDUtils.getExternalJsonData(EXT_ENCH_FILE).getAsJsonArray());
             } catch (IOException exception) {  
                 LockedDropMain.LOGGER.error("External enchantments configuration file damaged!");
                 exception.printStackTrace();
-                return;
             }       
-            loadEnchantments(config);
         } else {                
             try {               
-                Files.createDirectories(configPath.getParent());
-                JsonArray config = (JsonArray) LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json");
-                LDUtils.createExternalJsonFile(EXT_ENCH_FILE, config);    
-                loadEnchantments(config);
+                Files.createDirectories(extEnchantmentsPath.getParent());
+                JsonArray enchantmentsFile = LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json").getAsJsonArray();
+                LDUtils.createExternalJsonFile(EXT_ENCH_FILE, enchantmentsFile);    
+                loadEnchantments(enchantmentsFile);
             } catch (IOException exception) {               
                 exception.printStackTrace();
             }                       
@@ -149,39 +185,34 @@ public class ConfigLoader {
         return slots;
     }
 
-    public static void load() {
-        LockedDropMain.LOGGER.error("Loading data...");
-        JsonObject internalConfig, internalSettings;
-        try {       
-            internalConfig = (JsonObject) LDUtils.getInternalJsonData("assets/lockeddrop/config.json");  
-            internalSettings = (JsonObject) LDUtils.getInternalJsonData("assets/lockeddrop/locked_items.json");  
+    public static void loadServerData() {
+        LockedDropMain.LOGGER.info("Loading data...");
+        try {    
+            JsonObject
+            internalConfig = LDUtils.getInternalJsonData("assets/lockeddrop/config.json").getAsJsonObject(),
+            internalSettings = LDUtils.getInternalJsonData("assets/lockeddrop/locked_items.json").getAsJsonObject();  
+            if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled()) {               
+                loadExternalConfig(internalConfig, internalSettings);
+            } else                  
+                loadData(internalConfig, internalSettings);
         } catch (IOException exception) {       
             LockedDropMain.LOGGER.error("Internal configuration files damaged!");
             exception.printStackTrace();
-            return;
         }
-        if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled()) {               
-            loadExternalConfig(internalConfig, internalSettings);
-        } else                  
-            loadData(internalConfig, internalSettings);
     }
 
     private static void loadExternalConfig(JsonObject internalConfig, JsonObject internalSettings) {
         Path configPath = Paths.get(EXT_CONFIGURATION_FILE);      
         if (Files.exists(configPath)) {
-            JsonObject externalConfig, externalSettings;
-            try {                   
-                externalConfig = updateConfig(internalConfig);    
-                externalSettings = (JsonObject) LDUtils.getExternalJsonData(EXT_DATA_FILE);       
+            try {      
+                loadData(updateConfig(internalConfig), LDUtils.getExternalJsonData(EXT_DATA_FILE).getAsJsonObject());
             } catch (IOException exception) {  
                 LockedDropMain.LOGGER.error("External configuration file damaged!");
                 exception.printStackTrace();
-                return;
             }       
-            loadData(externalConfig, externalSettings);
         } else {                
-            Path dataPath = Paths.get(EXT_DATA_FILE);      
             try {               
+                Path dataPath = Paths.get(EXT_DATA_FILE);      
                 Files.createDirectories(configPath.getParent());                                
                 Files.createDirectories(dataPath.getParent());                            
                 createExternalCopyAndLoad(internalConfig, internalSettings);  
@@ -192,53 +223,53 @@ public class ConfigLoader {
     }
 
     private static JsonObject updateConfig(JsonObject internalConfig) throws IOException {
-        JsonObject externalConfigOld, externalConfigNew, externalGroupNew;
-        try {                   
-            externalConfigOld = (JsonObject) LDUtils.getExternalJsonData(EXT_CONFIGURATION_FILE);       
+        try {            
+            JsonObject externalConfigOld, externalConfigNew, externalGroupNew;
+            externalConfigOld = LDUtils.getExternalJsonData(EXT_CONFIGURATION_FILE).getAsJsonObject();   
+            JsonElement versionElement = externalConfigOld.get("version");
+            if (versionElement == null || isOutdated(versionElement.getAsString(), LockedDropMain.VERSION)) {
+                LockedDropMain.LOGGER.info("Updating external config file...");
+                externalConfigNew = new JsonObject();
+                externalConfigNew.add("version", new JsonPrimitive(LockedDropMain.VERSION));
+                Map<String, JsonElement> 
+                internalData = new LinkedHashMap<String, JsonElement>(),
+                externlDataOld = new HashMap<String, JsonElement>(),
+                internalGroup, externlGroupOld;
+                for (Map.Entry<String, JsonElement> entry : internalConfig.entrySet())
+                    internalData.put(entry.getKey(), entry.getValue());
+                for (Map.Entry<String, JsonElement> entry : externalConfigOld.entrySet())
+                    externlDataOld.put(entry.getKey(), entry.getValue());      
+                for (String key : internalData.keySet()) {
+                    internalGroup = new LinkedHashMap<String, JsonElement>();
+                    externlGroupOld = new HashMap<String, JsonElement>();
+                    externalGroupNew = new JsonObject();
+                    for (Map.Entry<String, JsonElement> entry : internalData.get(key).getAsJsonObject().entrySet())
+                        internalGroup.put(entry.getKey(), entry.getValue());
+                    if (externlDataOld.containsKey(key)) {                    
+                        for (Map.Entry<String, JsonElement> entry : externlDataOld.get(key).getAsJsonObject().entrySet())
+                            externlGroupOld.put(entry.getKey(), entry.getValue());   
+                        for (String k : internalGroup.keySet()) {
+                            if (externlGroupOld.containsKey(k))
+                                externalGroupNew.add(k, externlGroupOld.get(k));
+                            else 
+                                externalGroupNew.add(k, internalGroup.get(k));
+                        }
+                    } else {
+                        for (String k : internalGroup.keySet())
+                            externalGroupNew.add(k, internalGroup.get(k));
+                    }
+                    externalConfigNew.add(key, externalGroupNew);
+                    LDUtils.createExternalJsonFile(EXT_CONFIGURATION_FILE, externalConfigNew);
+                }
+                return externalConfigNew;
+            }
+            LockedDropMain.LOGGER.info("External config up-to-date!");
+            return externalConfigOld;            
         } catch (IOException exception) {  
             LockedDropMain.LOGGER.error("External configuration file damaged!");
             exception.printStackTrace();
-            return null;
         }
-        JsonElement versionElement = externalConfigOld.get("version");
-        if (versionElement == null || isOutdated(versionElement.getAsString(), LockedDropMain.VERSION)) {
-            LockedDropMain.LOGGER.info("Updating external config file...");
-            externalConfigNew = new JsonObject();
-            externalConfigNew.add("version", new JsonPrimitive(LockedDropMain.VERSION));
-            Map<String, JsonElement> 
-            internalData = new LinkedHashMap<String, JsonElement>(),
-            externlDataOld = new HashMap<String, JsonElement>(),
-            internalGroup, externlGroupOld;
-            for (Map.Entry<String, JsonElement> entry : internalConfig.entrySet())
-                internalData.put(entry.getKey(), entry.getValue());
-            for (Map.Entry<String, JsonElement> entry : externalConfigOld.entrySet())
-                externlDataOld.put(entry.getKey(), entry.getValue());      
-            for (String key : internalData.keySet()) {
-                internalGroup = new LinkedHashMap<String, JsonElement>();
-                externlGroupOld = new HashMap<String, JsonElement>();
-                externalGroupNew = new JsonObject();
-                for (Map.Entry<String, JsonElement> entry : internalData.get(key).getAsJsonObject().entrySet())
-                    internalGroup.put(entry.getKey(), entry.getValue());
-                if (externlDataOld.containsKey(key)) {                    
-                    for (Map.Entry<String, JsonElement> entry : externlDataOld.get(key).getAsJsonObject().entrySet())
-                        externlGroupOld.put(entry.getKey(), entry.getValue());   
-                    for (String k : internalGroup.keySet()) {
-                        if (externlGroupOld.containsKey(k))
-                            externalGroupNew.add(k, externlGroupOld.get(k));
-                        else 
-                            externalGroupNew.add(k, internalGroup.get(k));
-                    }
-                } else {
-                    for (String k : internalGroup.keySet())
-                        externalGroupNew.add(k, internalGroup.get(k));
-                }
-                externalConfigNew.add(key, externalGroupNew);
-                LDUtils.createExternalJsonFile(EXT_CONFIGURATION_FILE, externalConfigNew);
-            }
-            return externalConfigNew;
-        }
-        LockedDropMain.LOGGER.info("External config up-to-date!");
-        return externalConfigOld;
+        return null;
     }
 
     private static void createExternalCopyAndLoad(JsonObject internalConfig, JsonObject internalSettings) {       

@@ -31,7 +31,7 @@ public class DataManager {
 
     public static void initServerData() {
         lockedItemsServer = new HashMap<ResourceLocation, LockedItem>();
-        ConfigLoader.load();
+        ConfigLoader.loadServerData();
     }
 
     @SideOnly(Side.CLIENT)
