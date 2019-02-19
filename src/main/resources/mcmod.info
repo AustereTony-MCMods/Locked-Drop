@@ -3,7 +3,7 @@
   "modid": "lockeddrop",
   "name": "Locked Drop",
   "description": "Customize items that will not drop at player death.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "mcversion": "1.12.2",
   "url": "https://minecraft.curseforge.com/projects/locked-drop",
   "updateUrl": "",

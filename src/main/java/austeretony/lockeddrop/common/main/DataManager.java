@@ -29,13 +29,13 @@ public class DataManager {
     settingsEnabledClient,
     settingsTooltipsClient;
 
-    public static void initServerData() {
+    public static void init() {
         lockedItemsServer = new HashMap<ResourceLocation, LockedItem>();
-        ConfigLoader.loadServerData();
+        ConfigLoader.load();
     }
 
     @SideOnly(Side.CLIENT)
-    public static void initClientData() {
+    public static void initClient() {
         lockedItemsClient = new HashMap<ResourceLocation, LockedItem>();
     }
 
@@ -87,7 +87,7 @@ public class DataManager {
         return lockedItemsClient.get(registryName);
     }
 
-    public static void lockItemServer(ResourceLocation registryName, int meta, String unlocalizedName) {   
+    public static void disableDropItemServer(ResourceLocation registryName, int meta, String unlocalizedName) {   
         if (!lockedItemsServer.containsKey(registryName)) {
             LockedItem lockedItem = new LockedItem(registryName);
             lockedItem.createMetaItem(meta, unlocalizedName);
@@ -110,7 +110,7 @@ public class DataManager {
     }
 
     @SideOnly(Side.CLIENT)
-    public static void lockItemClient(ResourceLocation registryName, int meta, String unlocalizedName) {   
+    public static void disableDropItemClient(ResourceLocation registryName, int meta, String unlocalizedName) {   
         if (!lockedItemsClient.containsKey(registryName)) {
             LockedItem lockedItem = new LockedItem(registryName);
             lockedItem.createMetaItem(meta, unlocalizedName);
@@ -121,7 +121,7 @@ public class DataManager {
         hasDataClient = true;
     }
 
-    public static void removeItemServer(ResourceLocation registryName) {
+    public static void enableDropItemServer(ResourceLocation registryName) {
         lockedItemsServer.remove(registryName);
         hasDataServer = !lockedItemsServer.isEmpty();
     }
@@ -129,11 +129,11 @@ public class DataManager {
     public static void enableDropGlobalLatestItemServer() {   
         getServer(latestItem.registryName).removeMetaItem(latestItem.meta);
         if (!getServer(latestItem.registryName).hasData())
-            removeItemServer(latestItem.registryName);
+            enableDropItemServer(latestItem.registryName);
     }
 
     @SideOnly(Side.CLIENT)
-    public static void removeItemClient(ResourceLocation registryName) {
+    public static void enableDropItemClient(ResourceLocation registryName) {
         lockedItemsClient.remove(registryName);
         hasDataClient = !lockedItemsClient.isEmpty();
     }

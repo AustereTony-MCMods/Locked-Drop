@@ -2,7 +2,8 @@
   "main": {
     "external_config": true,  
     "settings_tooltips": true,
-    "enable_enchantments": true
+    "enable_enchantments": true,
+    "enable_custom_localization": true
   }, 
   "settings": {
     "enable_autosave": true

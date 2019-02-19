@@ -43,157 +43,16 @@ public class ConfigLoader {
 
     private static final DateFormat BACKUP_DATE_FORMAT = new SimpleDateFormat("yy_MM_dd-HH-mm-ss");
 
-    public static void loadCustomLocalization(List<String> languageList, Map<String, String> properties) {
-        Path localizationPath = Paths.get(EXT_LOCALIZATION_FILE);      
-        if (Files.exists(localizationPath)) {
-            try {       
-                loadLocalization(LDUtils.getExternalJsonData(EXT_LOCALIZATION_FILE).getAsJsonObject(), languageList, properties);
-            } catch (IOException exception) {       
-                exception.printStackTrace();
-                return;
-            }
-        } else {
-            try {               
-                Files.createDirectories(localizationPath.getParent());
-                JsonObject localizationFile = LDUtils.getInternalJsonData("assets/lockeddrop/localization.json").getAsJsonObject();
-                LDUtils.createExternalJsonFile(EXT_LOCALIZATION_FILE, localizationFile);  
-                loadLocalization(localizationFile, languageList, properties);
-            } catch (IOException exception) {               
-                exception.printStackTrace();
-            }   
-        }
-    }
-
-    private static void loadLocalization(JsonObject localizationFile, List<String> languageList, Map<String, String> properties) {
-        LockedDropMain.LOGGER.info("Searching for custom localization...");
-        for (String lang : languageList) {
-            JsonElement entriesElement = localizationFile.get(lang.toLowerCase());
-            if (entriesElement != null) {
-                LockedDropMain.LOGGER.info("Loading custom <" + lang + "> localization...");
-                JsonArray entries = entriesElement.getAsJsonArray();
-                JsonObject entryObject;
-                for (JsonElement entryElement : entries) {
-                    entryObject = entryElement.getAsJsonObject();
-                    if (entryObject.has("key") && entryObject.has("value")) 
-                        properties.put(
-                                entryObject.get("key").getAsString(), 
-                                entryObject.get("value").getAsString());
-                }
-            } else {
-                LockedDropMain.LOGGER.error("Custom localization for <" + lang + "> undefined!");
-            }
-        }
-    }
-
-    public static void loadEnchantmentProperties() {
-        try {       
-            JsonObject internalConfig = LDUtils.getInternalJsonData("assets/lockeddrop/config.json").getAsJsonObject();  
-            if (EnumConfigSettings.EXTERNAL_CONFIG.initBoolean(internalConfig)) {
-                Path extConfigPath = Paths.get(EXT_CONFIGURATION_FILE);      
-                if (Files.exists(extConfigPath)) {
-                    try {       
-                        if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(updateConfig(internalConfig)))
-                            loadExternalEnchantments();
-                    } catch (IOException exception) {       
-                        LockedDropMain.LOGGER.error("External configuration files damaged!");
-                        exception.printStackTrace();
-                    }
-                } else {
-                    if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(internalConfig))
-                        loadExternalEnchantments();
-                }
-            } else {
-                if (EnumConfigSettings.ENABLE_ENCHANTMENTS.initBoolean(internalConfig))
-                    loadInternalEnchantments();
-            }
-        } catch (IOException exception) {       
-            LockedDropMain.LOGGER.error("Internal configuration files damaged!");
-            exception.printStackTrace();
-        }
-    }
-
-    private static void loadInternalEnchantments() {
-        try {       
-            loadEnchantments(LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json").getAsJsonArray());
-        } catch (IOException exception) {     
-            LockedDropMain.LOGGER.error("Internal enchantments configuration file damaged!");
-            exception.printStackTrace();
-        }
-    }
-
-    private static void loadExternalEnchantments() {
-        Path extEnchantmentsPath = Paths.get(EXT_ENCH_FILE);      
-        if (Files.exists(extEnchantmentsPath)) {
-            try {                   
-                loadEnchantments(LDUtils.getExternalJsonData(EXT_ENCH_FILE).getAsJsonArray());
-            } catch (IOException exception) {  
-                LockedDropMain.LOGGER.error("External enchantments configuration file damaged!");
-                exception.printStackTrace();
-            }       
-        } else {                
-            try {               
-                Files.createDirectories(extEnchantmentsPath.getParent());
-                JsonArray enchantmentsFile = LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json").getAsJsonArray();
-                LDUtils.createExternalJsonFile(EXT_ENCH_FILE, enchantmentsFile);    
-                loadEnchantments(enchantmentsFile);
-            } catch (IOException exception) {               
-                exception.printStackTrace();
-            }                       
-        }
-    }
-
-    private static void loadEnchantments(JsonArray config) { 
-        JsonObject enchObject;
-        EnumEnchantmentProperties enumProp;
-        Enchantment.Rarity rarity;
-        EnumEnchantmentType type;
-        EntityEquipmentSlot[] equipmentSlots;
-        for (JsonElement enchElement : config) {
-            enchObject = enchElement.getAsJsonObject();
-            enumProp = EnumEnchantmentProperties.getOf(enchObject.get("id").getAsString());
-            enumProp.setEnabled(enchObject.get("enabled").getAsBoolean());
-            enumProp.setName(enchObject.get("name").getAsString());
-            rarity = Enchantment.Rarity.valueOf(enchObject.get("rarity").getAsString());
-            enumProp.setRarity(rarity == null ? Enchantment.Rarity.COMMON : rarity);
-            enumProp.setMinEnchantability(enchObject.get("min_ench_level").getAsInt());
-            enumProp.setMaxEnchantability(enchObject.get("max_ench_level").getAsInt());
-            type = EnumEnchantmentType.valueOf(enchObject.get("valid_for").getAsString());
-            enumProp.setType(type == null ? EnumEnchantmentType.ALL : type);
-            enumProp.setEquipmentSlots(getSlots(enchObject.get("valid_equipment_slots").getAsJsonArray()));  
-            for (JsonElement incompatElement : enchObject.get("incompatible_with").getAsJsonArray())
-                enumProp.addIncompatibleEnchantment(new ResourceLocation(incompatElement.getAsString()));
-            for (JsonElement incompatElement : enchObject.get("invalid_items").getAsJsonArray())
-                enumProp.addIvalidItem(new ResourceLocation(incompatElement.getAsString()));
-        }
-    }
-
-    private static EntityEquipmentSlot[] getSlots(JsonArray jsonArray) {
-        EntityEquipmentSlot[] slots = new EntityEquipmentSlot[jsonArray.size()];
-        String slotName;
-        int i = 0;
-        EntityEquipmentSlot slot;
-        for (JsonElement slotElement : jsonArray) {
-            slotName = slotElement.getAsString();
-            slot = EntityEquipmentSlot.valueOf(slotName);
-            if (slot == null)
-                slot = EntityEquipmentSlot.MAINHAND;
-            slots[i] = slot;
-            i++;
-        }
-        if (slots.length == 0)
-            slots = new EntityEquipmentSlot[] {EntityEquipmentSlot.MAINHAND};     
-        return slots;
-    }
-
-    public static void loadServerData() {
-        LockedDropMain.LOGGER.info("Loading data...");
+    public static void load() {
+        LockedDropMain.LOGGER.info("Loading configuration...");
         try {    
             JsonObject
             internalConfig = LDUtils.getInternalJsonData("assets/lockeddrop/config.json").getAsJsonObject(),
             internalSettings = LDUtils.getInternalJsonData("assets/lockeddrop/locked_items.json").getAsJsonObject();  
-            if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled()) {               
+            EnumConfigSettings.EXTERNAL_CONFIG.initByType(internalConfig);
+            if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled())             
                 loadExternalConfig(internalConfig, internalSettings);
-            } else                  
+            else                  
                 loadData(internalConfig, internalSettings);
         } catch (IOException exception) {       
             LockedDropMain.LOGGER.error("Internal configuration files damaged!");
@@ -282,9 +141,9 @@ public class ConfigLoader {
         loadData(internalConfig, internalSettings);
     }
 
-    private static void loadData(JsonObject configFile, JsonObject settingsFile) {          
-        EnumConfigSettings.AUTOSAVE.initBoolean(configFile); 
-        EnumConfigSettings.SETTINGS_TOOLTIPS.initBoolean(configFile); 
+    private static void loadData(JsonObject configFile, JsonObject settingsFile) {  
+        LockedDropMain.LOGGER.info("Loading data...");
+        EnumConfigSettings.initAll(configFile);
         JsonObject itemObject, metaObject;
         ResourceLocation registryName;
         int meta;
@@ -300,7 +159,7 @@ public class ConfigLoader {
                 if (metaEntry.getKey().equals("main_meta")) continue;
                 meta = Integer.parseInt(metaEntry.getKey());
                 metaObject = metaEntry.getValue().getAsJsonObject();
-                DataManager.lockItemServer(
+                DataManager.disableDropItemServer(
                         registryName,
                         Integer.parseInt(metaEntry.getKey()), 
                         metaObject.get("unlocalized").getAsString());
@@ -309,6 +168,136 @@ public class ConfigLoader {
             }
             DataManager.getServer(registryName).setMainMeta(itemObject.get("main_meta").getAsInt());
         }
+    }
+
+    public static void loadCustomLocalization(List<String> languageList, Map<String, String> properties) {
+        if (EnumConfigSettings.CUSTOM_LOCALIZATION.isEnabled()) {
+            Path localizationPath = Paths.get(EXT_LOCALIZATION_FILE);      
+            if (Files.exists(localizationPath)) {
+                try {       
+                    loadLocalization(LDUtils.getExternalJsonData(EXT_LOCALIZATION_FILE).getAsJsonObject(), languageList, properties);
+                } catch (IOException exception) {       
+                    exception.printStackTrace();
+                    return;
+                }
+            } else {
+                try {               
+                    Files.createDirectories(localizationPath.getParent());
+                    LDUtils.createAbsoluteJsonCopy(EXT_LOCALIZATION_FILE, ConfigLoader.class.getClassLoader().getResourceAsStream("assets/lockeddrop/localization.json"));    
+                    loadLocalization(LDUtils.getInternalJsonData("assets/lockeddrop/localization.json").getAsJsonObject(), languageList, properties);
+                } catch (IOException exception) {               
+                    exception.printStackTrace();
+                }   
+            }
+        }
+    }
+
+    private static void loadLocalization(JsonObject localizationFile, List<String> languageList, Map<String, String> properties) {
+        LockedDropMain.LOGGER.info("Searching for custom localization...");
+        for (String lang : languageList) {
+            JsonElement entriesElement = localizationFile.get(lang.toLowerCase());
+            if (entriesElement != null) {
+                LockedDropMain.LOGGER.info("Loading custom <" + lang + "> localization...");
+                JsonArray entries = entriesElement.getAsJsonArray();
+                JsonObject entryObject;
+                for (JsonElement entryElement : entries) {
+                    entryObject = entryElement.getAsJsonObject();
+                    if (entryObject.has("key") && entryObject.has("value")) 
+                        properties.put(
+                                entryObject.get("key").getAsString(), 
+                                entryObject.get("value").getAsString());
+                }
+            } else {
+                LockedDropMain.LOGGER.error("Custom localization for <" + lang + "> undefined!");
+            }
+        }
+    }
+
+    public static void loadEnchantmentProperties() {
+        if (EnumConfigSettings.ENCHANTMENTS.isEnabled())
+            if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled())
+                loadExternalEnchantments();
+            else
+                loadInternalEnchantments();
+    }
+
+    private static void loadInternalEnchantments() {
+        try {       
+            loadEnchantments(LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json").getAsJsonArray());
+        } catch (IOException exception) {     
+            LockedDropMain.LOGGER.error("Internal enchantments configuration file damaged!");
+            exception.printStackTrace();
+        }
+    }
+
+    private static void loadExternalEnchantments() {
+        Path extEnchantmentsPath = Paths.get(EXT_ENCH_FILE);      
+        if (Files.exists(extEnchantmentsPath)) {
+            try {                   
+                loadEnchantments(LDUtils.getExternalJsonData(EXT_ENCH_FILE).getAsJsonArray());
+            } catch (IOException exception) {  
+                LockedDropMain.LOGGER.error("External enchantments configuration file damaged!");
+                exception.printStackTrace();
+            }       
+        } else {                
+            try {               
+                Files.createDirectories(extEnchantmentsPath.getParent());
+                JsonArray enchantmentsFile = LDUtils.getInternalJsonData("assets/lockeddrop/enchantments.json").getAsJsonArray();
+                LDUtils.createExternalJsonFile(EXT_ENCH_FILE, enchantmentsFile);    
+                loadEnchantments(enchantmentsFile);
+            } catch (IOException exception) {               
+                exception.printStackTrace();
+            }                       
+        }
+    }
+
+    private static void loadEnchantments(JsonArray config) { 
+        LockedDropMain.LOGGER.info("Loading enchantments...");
+        JsonObject enchObject;
+        EnumEnchantmentProperties enumProp;
+        Enchantment.Rarity rarity;
+        EnumEnchantmentType type;
+        EntityEquipmentSlot[] equipmentSlots;
+        for (JsonElement enchElement : config) {
+            enchObject = enchElement.getAsJsonObject();
+            enumProp = EnumEnchantmentProperties.getOf(enchObject.get("id").getAsString());
+            if (enumProp != null) {
+                enumProp.setEnabled(enchObject.get("enabled").getAsBoolean());
+                enumProp.setName(enchObject.get("name").getAsString());
+                rarity = Enchantment.Rarity.valueOf(enchObject.get("rarity").getAsString());
+                enumProp.setRarity(rarity == null ? Enchantment.Rarity.COMMON : rarity);
+                enumProp.setMinEnchantability(enchObject.get("min_ench_level").getAsInt());
+                enumProp.setMaxEnchantability(enchObject.get("max_ench_level").getAsInt());
+                type = EnumEnchantmentType.valueOf(enchObject.get("valid_for").getAsString());
+                enumProp.setType(type == null ? EnumEnchantmentType.ALL : type);
+                enumProp.setEquipmentSlots(getSlots(enchObject.get("valid_equipment_slots").getAsJsonArray()));  
+                for (JsonElement incompatElement : enchObject.get("incompatible_with").getAsJsonArray())
+                    enumProp.addIncompatibleEnchantment(new ResourceLocation(incompatElement.getAsString()));
+                for (JsonElement incompatElement : enchObject.get("invalid_items").getAsJsonArray())
+                    enumProp.addIvalidItem(new ResourceLocation(incompatElement.getAsString()));
+            }
+        }
+    }
+
+    private static EntityEquipmentSlot[] getSlots(JsonArray jsonArray) {
+        if (jsonArray.size() == 0) 
+            return EntityEquipmentSlot.values();   
+        EntityEquipmentSlot[] slots = new EntityEquipmentSlot[jsonArray.size()];
+        String slotName;
+        int i = 0;
+        EntityEquipmentSlot slot; 
+        for (JsonElement slotElement : jsonArray) {
+            slotName = slotElement.getAsString();
+            if (slotName.equals("ALL")) 
+                return EntityEquipmentSlot.values();  
+            slot = EntityEquipmentSlot.valueOf(slotName);
+            if (slot != null)
+                slots[i] = slot;
+            else   
+                slots[i] = EntityEquipmentSlot.MAINHAND;
+            i++;
+        }
+        return slots;
     }
 
     public static void save() {

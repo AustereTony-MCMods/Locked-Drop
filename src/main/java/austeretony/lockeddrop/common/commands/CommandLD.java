@@ -70,6 +70,7 @@ public class CommandLD extends CommandBase {
             EnumChatMessages.COMMAND_LD_STATUS.sendMessage(player);
             break; 
         case SETTINGS:
+            EnumChatMessages.COMMAND_LD_STATUS.sendMessage(player);
             EnumChatMessages.COMMAND_LD_SETTINGS.sendMessage(player);
             break;
         case DENY_GLOBAL:
@@ -124,7 +125,7 @@ public class CommandLD extends CommandBase {
             break;
         case RELOAD:
             if (!this.validAction(player, false, false, false, false)) break;
-            DataManager.initServerData();
+            DataManager.init();
             EnumChatMessages.COMMAND_LD_RELOAD.sendMessage(player);
             break;
         case BACKUP:

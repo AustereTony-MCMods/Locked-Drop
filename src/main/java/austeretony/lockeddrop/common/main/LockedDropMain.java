@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import austeretony.lockeddrop.common.commands.CommandLD;
 import austeretony.lockeddrop.common.config.ConfigLoader;
+import austeretony.lockeddrop.common.config.EnumConfigSettings;
 import austeretony.lockeddrop.common.network.NetworkHandler;
 import austeretony.lockeddrop.common.reference.CommonReference;
 import net.minecraftforge.fml.common.Mod;
@@ -24,15 +25,20 @@ public class LockedDropMain {
     public static final String 
     MODID = "lockeddrop",
     NAME = "Locked Drop",
-    VERSION = "1.2.0",
+    VERSION = "1.2.1",
     VERSIONS_FORGE_URL = "https://raw.githubusercontent.com/AustereTony-MCMods/Locked-Drop/info/mod_versions_forge.json";
 
     public static final Logger LOGGER = LogManager.getLogger(NAME);
 
+    static {
+        DataManager.init();
+    }
+
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         ConfigLoader.loadEnchantmentProperties();
-        CommonReference.registerEvent(new EnchantmentRegistry());
+        if (EnumConfigSettings.ENCHANTMENTS.isEnabled())
+            CommonReference.registerEvent(new EnchantmentRegistry());
     }
 
     @EventHandler
@@ -43,7 +49,6 @@ public class LockedDropMain {
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {  
-        DataManager.initServerData();
         CommonReference.registerCommand(event, new CommandLD());
     }
 }

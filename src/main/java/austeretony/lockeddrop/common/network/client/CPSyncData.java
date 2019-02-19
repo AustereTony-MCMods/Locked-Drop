@@ -67,7 +67,7 @@ public class CPSyncData extends ProxyPacket {
                 metaAmount = buffer.readByte();
                 for (int j = 0; j < metaAmount; j++) {
                     meta = buffer.readByte();
-                    DataManager.lockItemClient(
+                    DataManager.disableDropItemClient(
                             registryName, 
                             meta, 
                             "");      
@@ -84,12 +84,12 @@ public class CPSyncData extends ProxyPacket {
             regNameStr = buffer.readString(buffer.readByte());
             registryName = new ResourceLocation(regNameStr);
             if (DataManager.existClient(registryName))
-                DataManager.removeItemClient(registryName);
+                DataManager.enableDropItemClient(registryName);
             mainMeta = buffer.readByte();
             metaAmount = buffer.readByte();
             for (int j = 0; j < metaAmount; j++) {
                 meta = buffer.readByte();
-                DataManager.lockItemClient(
+                DataManager.disableDropItemClient(
                         registryName, 
                         meta, 
                         "");

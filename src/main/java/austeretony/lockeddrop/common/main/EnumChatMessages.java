@@ -69,7 +69,6 @@ public enum EnumChatMessages {
             CommonReference.sendMessage(player, prefix().appendSibling(new TextComponentTranslation("ld.command.status").appendSibling(new TextComponentString(": ")).appendSibling(msg1)));
             break;
         case COMMAND_LD_SETTINGS:
-            COMMAND_LD_STATUS.sendMessage(player, args);
             CommonReference.sendMessage(player, prefix().appendSibling(new TextComponentTranslation("ld.command.settings")));
             if (DataManager.getItemsServer().isEmpty())
                 CommonReference.sendMessage(player, new TextComponentTranslation("ld.command.settings.empty"));

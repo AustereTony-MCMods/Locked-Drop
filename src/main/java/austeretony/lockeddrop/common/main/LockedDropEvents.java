@@ -23,7 +23,7 @@ public class LockedDropEvents {
 
     @SubscribeEvent
     public void onPlayerConnectsToServer(FMLNetworkEvent.ClientConnectedToServerEvent event) {
-        DataManager.initClientData();
+        DataManager.initClient();
     }
 
     @SubscribeEvent
