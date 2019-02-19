@@ -1,3 +1,11 @@
+1.2.1
++Custom localization file cn be disabled via main config.
++Improved "valid_equipment_slots" parameter for enchantments configurtion file, now you can use
+value "ALL" instead enumeration of all available values to define this enchantment suitable for all 
+equipment slots. It will be used as default.
++Fixes:
+ - Fixed configuration loading order.
+ - Fixed enchantment registration.
 1.2.0
 +Added file for custom localization injection. It can be used to change default localization of
 tooltip notes or to provide translation for other languages. For more information see wiki.
