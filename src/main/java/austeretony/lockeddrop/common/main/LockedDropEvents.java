@@ -5,7 +5,6 @@ import java.util.List;
 import austeretony.lockeddrop.common.config.EnumConfigSettings;
 import austeretony.lockeddrop.common.network.NetworkHandler;
 import austeretony.lockeddrop.common.network.client.CPSyncData;
-import austeretony.lockeddrop.common.network.client.CPSyncSettings;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -28,9 +27,11 @@ public class LockedDropEvents {
 
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerLoggedInEvent event) {
-        NetworkHandler.sendTo(new CPSyncSettings(), (EntityPlayerMP) event.player);
-        if (EnumConfigSettings.SETTINGS_TOOLTIPS.isEnabled())
-            NetworkHandler.sendTo(new CPSyncData(CPSyncData.EnumAction.SYNC_ALL), (EntityPlayerMP) event.player);
+        if (EnumConfigSettings.SETTINGS_TOOLTIPS.isEnabled()) {
+            NetworkHandler.sendTo(new CPSyncData(CPSyncData.EnumAction.SYNC_STATUS), (EntityPlayerMP) event.player);
+            NetworkHandler.sendTo(new CPSyncData(CPSyncData.EnumAction.SYNC_TOOLTIPS), (EntityPlayerMP) event.player);
+            NetworkHandler.sendTo(new CPSyncData(CPSyncData.EnumAction.SYNC_LIST), (EntityPlayerMP) event.player);
+        }
     }
 
     @SideOnly(Side.CLIENT)

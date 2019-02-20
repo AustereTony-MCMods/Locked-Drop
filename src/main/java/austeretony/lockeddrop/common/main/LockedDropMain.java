@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
         modid = LockedDropMain.MODID, 
         name = LockedDropMain.NAME, 
         version = LockedDropMain.VERSION,
+        acceptableRemoteVersions = "*",
         certificateFingerprint = "@FINGERPRINT@",
         updateJSON = LockedDropMain.VERSIONS_FORGE_URL)
 public class LockedDropMain {
@@ -25,7 +26,7 @@ public class LockedDropMain {
     public static final String 
     MODID = "lockeddrop",
     NAME = "Locked Drop",
-    VERSION = "1.2.1",
+    VERSION = "1.2.2",
     VERSIONS_FORGE_URL = "https://raw.githubusercontent.com/AustereTony-MCMods/Locked-Drop/info/mod_versions_forge.json";
 
     public static final Logger LOGGER = LogManager.getLogger(NAME);
@@ -36,15 +37,18 @@ public class LockedDropMain {
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        ConfigLoader.loadEnchantmentProperties();
-        if (EnumConfigSettings.ENCHANTMENTS.isEnabled())
+        if (!EnumConfigSettings.SERVER_ONLY.isEnabled() && EnumConfigSettings.ENCHANTMENTS.isEnabled()) {
+            ConfigLoader.loadEnchantmentProperties();
             CommonReference.registerEvent(new EnchantmentRegistry());
+        }
     }
 
     @EventHandler
-    public void init(FMLInitializationEvent event) { 
-        NetworkHandler.init();
-        CommonReference.registerEvent(new LockedDropEvents());
+    public void init(FMLInitializationEvent event) {
+        if (!EnumConfigSettings.SERVER_ONLY.isEnabled()) {
+            NetworkHandler.init();
+            CommonReference.registerEvent(new LockedDropEvents());
+        }
     }
 
     @EventHandler

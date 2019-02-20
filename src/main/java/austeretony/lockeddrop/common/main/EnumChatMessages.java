@@ -14,7 +14,7 @@ public enum EnumChatMessages {
     COMMAND_LD_ENABLE,
     COMMAND_LD_DISABLE,
     COMMAND_LD_STATUS,
-    COMMAND_LD_SETTINGS,
+    COMMAND_LD_LIST,
     COMMAND_LD_DENY_GLOBAL,
     COMMAND_LD_ALLOW_GLOBAL,
     COMMAND_LD_DENY_SUBTYPES,
@@ -68,10 +68,10 @@ public enum EnumChatMessages {
             msg1.getStyle().setColor(DataManager.isSettingsEnabled() ? TextFormatting.GREEN : TextFormatting.RED);        
             CommonReference.sendMessage(player, prefix().appendSibling(new TextComponentTranslation("ld.command.status").appendSibling(new TextComponentString(": ")).appendSibling(msg1)));
             break;
-        case COMMAND_LD_SETTINGS:
-            CommonReference.sendMessage(player, prefix().appendSibling(new TextComponentTranslation("ld.command.settings")));
+        case COMMAND_LD_LIST:
+            CommonReference.sendMessage(player, prefix().appendSibling(new TextComponentTranslation("ld.command.list")));
             if (DataManager.getItemsServer().isEmpty())
-                CommonReference.sendMessage(player, new TextComponentTranslation("ld.command.settings.empty"));
+                CommonReference.sendMessage(player, new TextComponentTranslation("ld.command.list.empty"));
             for (LockedItem lockedItem : DataManager.getItemsServer().values()) {
                 for (MetaItem metaItem : lockedItem.getData().values()) {      
                     if (lockedItem.hasMainMeta() && lockedItem.getMainMeta() != metaItem.meta) continue;
@@ -84,7 +84,7 @@ public enum EnumChatMessages {
                     CommonReference.sendMessage(player, msg1.appendSibling(msg2).appendSibling(msg3));
                 }
                 if (lockedItem.hasMainMeta()) {
-                    msg1 = new TextComponentTranslation("ld.command.settings.mainMetaSet");
+                    msg1 = new TextComponentTranslation("ld.command.list.mainMetaSet");
                     msg1.getStyle().setColor(TextFormatting.YELLOW); 
                     CommonReference.sendMessage(player, new TextComponentString(" - ").appendSibling(msg1));
                 }

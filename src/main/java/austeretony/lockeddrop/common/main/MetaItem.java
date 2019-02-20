@@ -6,7 +6,7 @@ public class MetaItem {
 
     public final String unlocalizedName;
 
-    private boolean dropOnDeath;//currently unused
+    private boolean dropOnDeath;//currently unused, cause there are no more functions available
 
     public MetaItem(int meta, String unlocalizedName) {
         this.meta = meta;

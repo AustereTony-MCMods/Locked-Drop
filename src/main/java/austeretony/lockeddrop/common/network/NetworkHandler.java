@@ -6,7 +6,6 @@ import com.google.common.collect.HashBiMap;
 
 import austeretony.lockeddrop.common.main.LockedDropMain;
 import austeretony.lockeddrop.common.network.client.CPSyncData;
-import austeretony.lockeddrop.common.network.client.CPSyncSettings;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -34,7 +33,6 @@ public class NetworkHandler {
     }
 
     private static void registerPackets() {
-        register(CPSyncSettings.class);
         register(CPSyncData.class);
     }
 

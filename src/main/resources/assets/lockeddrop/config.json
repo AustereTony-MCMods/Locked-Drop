@@ -1,9 +1,10 @@
 {
   "main": {
     "external_config": true,  
+    "server_only": false,
     "settings_tooltips": true,
     "enable_enchantments": true,
-    "enable_custom_localization": true
+    "enable_custom_localization": false
   }, 
   "settings": {
     "enable_autosave": true

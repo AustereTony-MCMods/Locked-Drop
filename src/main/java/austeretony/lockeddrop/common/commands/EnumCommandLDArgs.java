@@ -6,7 +6,7 @@ public enum EnumCommandLDArgs {
     DISABLE_SETTINGS("disable"),
     ENABLE_SETTINGS("enable"),
     STATUS("status"),
-    SETTINGS("settings"),
+    LIST("list"),
     DENY_GLOBAL("deny-global"),
     ALLOW_GLOBAL("allow-global"),
     DENY_SUBTYPES("deny-subtypes"),

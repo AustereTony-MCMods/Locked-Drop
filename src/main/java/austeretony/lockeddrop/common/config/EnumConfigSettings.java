@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 public enum EnumConfigSettings {
 
     EXTERNAL_CONFIG(0, "main", "external_config", true),
+    SERVER_ONLY(0, "main", "server_only"),
     SETTINGS_TOOLTIPS(0, "main", "settings_tooltips"),
     ENCHANTMENTS(0, "main", "enable_enchantments"),
     CUSTOM_LOCALIZATION(0, "main", "enable_custom_localization"),

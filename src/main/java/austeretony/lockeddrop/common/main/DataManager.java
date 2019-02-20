@@ -138,6 +138,13 @@ public class DataManager {
         hasDataClient = !lockedItemsClient.isEmpty();
     }
 
+    @SideOnly(Side.CLIENT)
+    public static void enableDropItemClient(ResourceLocation registryName, int meta) {
+        lockedItemsClient.get(registryName).removeMetaItem(meta);
+        if (!lockedItemsClient.get(registryName).hasData())
+            enableDropItemClient(registryName);
+    }
+
     public static void clearDataServer() {
         lockedItemsServer.clear();
         hasDataServer = false;

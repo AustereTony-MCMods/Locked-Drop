@@ -7,7 +7,6 @@ import austeretony.lockeddrop.common.main.EnumChatMessages;
 import austeretony.lockeddrop.common.main.LatestItem;
 import austeretony.lockeddrop.common.network.NetworkHandler;
 import austeretony.lockeddrop.common.network.client.CPSyncData;
-import austeretony.lockeddrop.common.network.client.CPSyncSettings;
 import austeretony.lockeddrop.common.reference.CommonReference;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -57,48 +56,48 @@ public class CommandLD extends CommandBase {
         case ENABLE_SETTINGS:
             DataManager.setSettingsEnabled(true);
             this.save();
-            NetworkHandler.sendTo(new CPSyncSettings(), (EntityPlayerMP) player);
+            this.sync(CPSyncData.EnumAction.SYNC_STATUS);
             EnumChatMessages.COMMAND_LD_ENABLE.sendMessage(player);
             break;
         case DISABLE_SETTINGS:
             DataManager.setSettingsEnabled(false);
             this.save();
-            NetworkHandler.sendTo(new CPSyncSettings(), (EntityPlayerMP) player);
+            this.sync(CPSyncData.EnumAction.SYNC_STATUS);
             EnumChatMessages.COMMAND_LD_DISABLE.sendMessage(player);
             break;  
         case STATUS:
             EnumChatMessages.COMMAND_LD_STATUS.sendMessage(player);
             break; 
-        case SETTINGS:
+        case LIST:
             EnumChatMessages.COMMAND_LD_STATUS.sendMessage(player);
-            EnumChatMessages.COMMAND_LD_SETTINGS.sendMessage(player);
+            EnumChatMessages.COMMAND_LD_LIST.sendMessage(player);
             break;
         case DENY_GLOBAL:
             if (!this.validAction(player, true, false, false, false))  break;
             DataManager.disableDropGlobalLatestItemServer();
             this.save();
-            this.sync(player, CPSyncData.EnumAction.SYNC_LATEST);
+            this.sync(CPSyncData.EnumAction.SYNC_LATEST);
             EnumChatMessages.COMMAND_LD_DENY_GLOBAL.sendMessage(player);
             break;
         case ALLOW_GLOBAL:
             if (!this.validAction(player, true, true, false, false)) break;
             DataManager.enableDropGlobalLatestItemServer();
             this.save();
-            this.sync(player, CPSyncData.EnumAction.SYNC_LATEST);
+            this.sync(CPSyncData.EnumAction.REMOVE_LATEST);
             EnumChatMessages.COMMAND_LD_ALLOW_GLOBAL.sendMessage(player);
             break;
         case DENY_SUBTYPES:
             if (!this.validAction(player, true, true, false, false))  break;
             DataManager.getServer(DataManager.latestItem.registryName).setMainMeta(DataManager.latestItem.meta);
             this.save();
-            this.sync(player, CPSyncData.EnumAction.SYNC_LATEST);
+            this.sync(CPSyncData.EnumAction.SYNC_LATEST);
             EnumChatMessages.COMMAND_LD_DENY_SUBTYPES.sendMessage(player);
             break;
         case ALLOW_SUBTYPES:
             if (!this.validAction(player, true, true, false, false))  break;
             DataManager.getServer(DataManager.latestItem.registryName).resetMainMeta();
             this.save();
-            this.sync(player, CPSyncData.EnumAction.SYNC_LATEST);
+            this.sync(CPSyncData.EnumAction.SYNC_LATEST);
             EnumChatMessages.COMMAND_LD_ALLOW_SUBTYPES.sendMessage(player);
             break;
         case DENY_THIS:
@@ -108,14 +107,14 @@ public class CommandLD extends CommandBase {
             break;
         case ALLOW_THIS:
             if (!this.validAction(player, true, false, true, false)) break;
-            DataManager.enableDropHeldItemNBTServer(player);
+            DataManager.enableDropHeldItemNBTServer(player);           
             EnumChatMessages.COMMAND_LD_ALLOW_THIS.sendMessage(player);
             break;
         case CLEAR_ALL:
             if (!this.validAction(player, false, false, false, true)) break;
             DataManager.clearDataServer();
             this.save();
-            this.sync(player, CPSyncData.EnumAction.REMOVE_ALL);
+            this.sync(CPSyncData.EnumAction.CLEAR_LIST);
             EnumChatMessages.COMMAND_LD_CLEAR_ALL.sendMessage(player);
             break;
         case SAVE:
@@ -126,6 +125,9 @@ public class CommandLD extends CommandBase {
         case RELOAD:
             if (!this.validAction(player, false, false, false, false)) break;
             DataManager.init();
+            this.sync(CPSyncData.EnumAction.SYNC_STATUS);
+            this.sync(CPSyncData.EnumAction.SYNC_TOOLTIPS);
+            this.sync(CPSyncData.EnumAction.SYNC_LIST);
             EnumChatMessages.COMMAND_LD_RELOAD.sendMessage(player);
             break;
         case BACKUP:
@@ -163,10 +165,9 @@ public class CommandLD extends CommandBase {
             ConfigLoader.save();
     }
 
-    private void sync(EntityPlayer player, CPSyncData.EnumAction enumAction) {
-        if (EnumConfigSettings.SETTINGS_TOOLTIPS.isEnabled()) {
+    private void sync(CPSyncData.EnumAction enumAction) {
+        if (!EnumConfigSettings.SERVER_ONLY.isEnabled() && EnumConfigSettings.SETTINGS_TOOLTIPS.isEnabled())
             for (EntityPlayerMP playerMP : CommonReference.getPlayersListServer())
                 NetworkHandler.sendTo(new CPSyncData(enumAction), playerMP);
-        } 
     }
 }

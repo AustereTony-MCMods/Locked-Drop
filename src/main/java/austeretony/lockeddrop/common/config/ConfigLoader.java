@@ -214,11 +214,10 @@ public class ConfigLoader {
     }
 
     public static void loadEnchantmentProperties() {
-        if (EnumConfigSettings.ENCHANTMENTS.isEnabled())
-            if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled())
-                loadExternalEnchantments();
-            else
-                loadInternalEnchantments();
+        if (EnumConfigSettings.EXTERNAL_CONFIG.isEnabled())
+            loadExternalEnchantments();
+        else
+            loadInternalEnchantments();
     }
 
     private static void loadInternalEnchantments() {
