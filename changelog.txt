@@ -1,5 +1,12 @@
+1.2.2
++Mod rewritten and now supports server-only behavior. In server-only mode
+available all mod features except enchantments. All client-side part will be unaviable 
+(tooltips and localizaton for command). Config contains new parameter "server_only" ("false" by default)
+ - set it to "true" if using it at server only and it will prevent unnecessary synchronization logic.
++Custom localization file disabled by default.
++Code cleanup and fixes.
 1.2.1
-+Custom localization file cn be disabled via main config.
++Custom localization file can be disabled via main config.
 +Improved "valid_equipment_slots" parameter for enchantments configurtion file, now you can use
 value "ALL" instead enumeration of all available values to define this enchantment suitable for all 
 equipment slots. It will be used as default.
